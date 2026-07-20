@@ -21,6 +21,7 @@ dist = lambda a, b: math.hypot(a.x-b.x, a.y-b.y)
 is_open = lambda hnd: sum(dist(hnd[0],hnd[t]) > dist(hnd[0],hnd[m])*1.3 for t,m in TIP_MCP) >= 3
 
 def is_waving(hist, rev=4, amp=0.06):
+    """Detects a waving hand gesture based on x-coordinate history."""
     if len(hist) < 10:
         return False
     diffs = [hist[i+1]-hist[i] for i in range(len(hist)-1)]
@@ -35,12 +36,14 @@ def is_waving(hist, rev=4, amp=0.06):
     return reversals >= rev and max(hist)-min(hist) >= amp
 
 def face_solid(frame, box, hue_std=9, sat_min=60):
+    """Detects if a solid color (e.g., solved cube face) is present in the given box."""
     x1, y1, x2, y2 = box
     hsv = cv2.cvtColor(frame[y1:y2, x1:x2], cv2.COLOR_BGR2HSV)
     p = hsv[::8, ::8].reshape(-1, 3)
     return p[:,1].mean() >= sat_min and p[:,0].std() < hue_std
 
 def draw_panel(frame, text, sub, color):
+    """Draws a nice semi-transparent UI panel on the top-left of the frame."""
     overlay = frame.copy()
     cv2.rectangle(overlay, (20,20), (430,140), (30,30,30), -1)
     frame[:] = cv2.addWeighted(overlay, 0.6, frame, 0.4, 0)
@@ -48,6 +51,7 @@ def draw_panel(frame, text, sub, color):
     cv2.putText(frame, sub, (40,125), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
 def draw_ring(frame, center, pct, color):
+    """Draws a progress ring for the solid-face stopping mechanism."""
     cv2.ellipse(frame, center, (40,40), -90, 0, 360*pct, color, 4)
 
 STATE_COLOR = {"WAITING": (0,200,255), "RUNNING": (0,255,0), "STOPPED": (0,120,255)}
