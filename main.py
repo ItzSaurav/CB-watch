@@ -15,13 +15,19 @@ detector = vision.HandLandmarker.create_from_options(vision.HandLandmarkerOption
 
 CONN = [(0,1),(1,2),(2,3),(3,4),(0,5),(5,6),(6,7),(7,8),(5,9),(9,10),(10,11),(11,12),
         (9,13),(13,14),(14,15),(15,16),(13,17),(17,18),(18,19),(19,20),(0,17)]
+# Pairs of (Fingertip, MCP joint) for index, middle, ring, and pinky fingers
 TIP_MCP = [(8,5),(12,9),(16,13),(20,17)]
 
+# Simple 2D euclidean distance between two landmarks
 dist = lambda a, b: math.hypot(a.x-b.x, a.y-b.y)
+
+# Check if hand is open: if fingertip is further from wrist than the knuckle by at least 30%
+# for at least 3 fingers, we count that hand as open
 is_open = lambda hnd: sum(dist(hnd[0],hnd[t]) > dist(hnd[0],hnd[m])*1.3 for t,m in TIP_MCP) >= 3
 
 def is_waving(hist, rev=4, amp=0.06):
-    """Detects a waving hand gesture based on x-coordinate history."""
+    # Detect waving: track hand x-coord over past frames. If it switched direction (reversals)
+    # 4+ times with enough distance traveled, user is waving to reset the timer
     if len(hist) < 10:
         return False
     diffs = [hist[i+1]-hist[i] for i in range(len(hist)-1)]
@@ -36,7 +42,9 @@ def is_waving(hist, rev=4, amp=0.06):
     return reversals >= rev and max(hist)-min(hist) >= amp
 
 def face_solid(frame, box, hue_std=9, sat_min=60):
-    """Detects if a solid color (e.g., solved cube face) is present in the given box."""
+    # Checks if solved cube face is held in front of the box.
+    # Converts cropped ROI to HSV. If saturation is high and hue std dev is tiny,
+    # it means the region is almost completely one solid color (solved face)
     x1, y1, x2, y2 = box
     hsv = cv2.cvtColor(frame[y1:y2, x1:x2], cv2.COLOR_BGR2HSV)
     p = hsv[::8, ::8].reshape(-1, 3)
