@@ -1,6 +1,24 @@
 # CB-watch
 
+[![CI](https://github.com/ItzSaurav/CB-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/ItzSaurav/CB-watch/actions/workflows/ci.yml)
+
 A touchless, gesture-controlled Rubik's Cube timer utility built in Python using OpenCV and Google MediaPipe to track hand gestures and cube faces directly through your webcam.
+
+---
+
+## State Machine Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle: Application Start
+    Idle --> Armed: Single Open Palm (Stabilization Frames)
+    Armed --> Running: Palm Released (Solve In Progress)
+    Running --> Stopped: Two Open Palms OR Solved Cube Face in ROI
+    Stopped --> Idle: Side-to-Side Hand Wave OR 'r' Key
+    Idle --> [*]: 'q' Key (Exit)
+    Running --> [*]: 'q' Key (Exit)
+    Stopped --> [*]: 'q' Key (Exit)
+```
 
 ---
 
